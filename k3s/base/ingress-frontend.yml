@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: min44-front
+  namespace: min44
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt-min44-prod
+    kubernetes.io/ingress.class: "traefik"
+    nginx.ingress.kubernetes.io/proxy-body-size: 50m
+  labels:
+    app: min44-front
+spec:
+  tls:
+  - hosts:
+    - bimgen.app
+    secretName: bimgen.app-cert
+  rules:
+  - host: bimgen.app
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: min44-front
+          servicePort: 80

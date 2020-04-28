@@ -1,0 +1,44 @@
+{
+  "name": "rfa-web-manager-backend",
+  "version": "0.1.0",
+  "description": "Backend of web application for the generation and management Autodesk Revit families",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "bcryptjs": "^2.4.3",
+    "config": "^3.2.5",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "express-fileupload": "^1.1.6",
+    "express-validator": "^6.4.0",
+    "forge-apis": "^0.7.3",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.9.1"
+  },
+  "scripts": {
+    "build": "npm install",
+    "start": "NODE_ENV=production node app.js",
+    "server": "nodemon app.js"
+  },
+  "main": "app.js",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^5.1.0",
+    "cross-env": "^7.0.0",
+    "nodemon": "^2.0.2"
+  },
+  "keywords": [
+    "autodesk",
+    "forge",
+    "revit",
+    "family",
+    "manager",
+    "cloud",
+    "node.js",
+    "react.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://smirnov_bimgen@bitbucket.org/app-development-team/rfa-web-manager.git"
+  },
+  "homepage": "https://bitbucket.org/app-development-team/rfa-web-manager#readme"
+}

@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: min44-back
+  namespace: min44
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: min44-back
+  template:
+    metadata:
+      labels:
+        app: min44-back
+    spec:
+      containers:
+      - name: min44-back
+        image: registry.pentusha.com/min44/server:latest
+        imagePullPolicy: Always
+        env:
+          - name: NODE_ENV
+            value: development
+      imagePullSecrets:
+      - name: pentusha-registry-secret

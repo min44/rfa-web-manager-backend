@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: min44-front
+  namespace: min44
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: min44-front
+  template:
+    metadata:
+      labels:
+        app: min44-front
+    spec:
+      containers:
+      - name: min44-front
+        image: registry.pentusha.com/min44/client:latest
+        imagePullPolicy: Always
+      imagePullSecrets:
+      - name: pentusha-registry-secret

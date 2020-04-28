@@ -1,0 +1,15 @@
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-min44-prod
+  namespace: min44
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: mishamin116@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-min44-prod
+    solvers:
+    - http01:
+        ingress:
+          class: traefik

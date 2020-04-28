@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: min44-front
+  namespace: min44
+spec:
+  ports:
+  - name: http
+    targetPort: 80
+    port: 80
+  selector:
+    app: min44-front
