@@ -1,6 +1,6 @@
 For start the project:
 
-### `git clone https://smirnov_bimgen@bitbucket.org/app-development-team/rfa-web-manager.git`
+### `git clone https://github.com/min44/rfa-web-manager-backend.git`
 
 ### `cd rfa-web-manager`
 
