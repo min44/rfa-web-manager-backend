@@ -1,6 +1,5 @@
 {
     "port": 5000,
     "jwtSecret": "mysecretcode",
-    "mongoUri": "mongodb://mishamin:fJE3KewcUSBYcnbg@cluster0-shard-00-00-hga7a.azure.mongodb.net:27017,cluster0-shard-00-01-hga7a.azure.mongodb.net:27017,cluster0-shard-00-02-hga7a.azure.mongodb.net:27017/app?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true&w=majority",
-    "baseUrl": "http://localhost:5000"
+    "mongoUri": "mongodb://mishamin:fJE3KewcUSBYcnbg@cluster0-shard-00-00-hga7a.azure.mongodb.net:27017,cluster0-shard-00-01-hga7a.azure.mongodb.net:27017,cluster0-shard-00-02-hga7a.azure.mongodb.net:27017/app?ssl=true&replicaSet=Cluster0-shard-0&authSource=admin&retryWrites=true&w=majority"
 }
