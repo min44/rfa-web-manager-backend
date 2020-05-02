@@ -22,8 +22,8 @@ const PORT = config.get('port') || 5000
 
 // serve the API with signed certificate on 443 (SSL/HTTPS) port
 const httpsServer = https.createServer({
-  key: fs.readFileSync('/etc/letsencrypt/live/my_api_url/privkey.pem'),
-  cert: fs.readFileSync('/etc/letsencrypt/live/my_api_url/fullchain.pem'),
+  key: fs.readFileSync('/etc/letsencrypt/live/api.bimgen.org/privkey.pem'),
+  cert: fs.readFileSync('/etc/letsencrypt/live/api.bimgen.org/fullchain.pem'),
 }, app);
 httpsServer.listen(443, () => {
     console.log('HTTPS Server running on port 443');
