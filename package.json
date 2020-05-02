@@ -17,8 +17,8 @@
   },
   "scripts": {
     "build": "npm install",
-    "start": "NODE_ENV=production node app.js",
-    "server": "nodemon app.js"
+    "start": "cross-env NODE_ENV=production node app.js",
+    "dev": "nodemon app.js"
   },
   "main": "app.js",
   "license": "ISC",
@@ -40,6 +40,5 @@
   "repository": {
     "type": "git",
     "url": "git+https://smirnov_bimgen@bitbucket.org/app-development-team/rfa-web-manager.git"
-  },
-  "homepage": "https://bitbucket.org/app-development-team/rfa-web-manager#readme"
+  }
 }
