@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Backend of web application for the generation and management Autodesk Revit families",
   "dependencies": {
+    "autodesk.forge.designautomation": "3.0.3",
     "axios": "^0.19.2",
     "bcryptjs": "^2.4.3",
     "config": "^3.2.5",

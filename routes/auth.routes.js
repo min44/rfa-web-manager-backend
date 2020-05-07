@@ -4,7 +4,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 const { check, validationResult } = require("express-validator");
-const fac = require("./forge.client");
+const forgeDataManagementApiClient = require("./forge.dm.apiclient");
 
 const router = Router();
 
@@ -24,10 +24,10 @@ router.post(
           errors: errors.array(),
         });
       }
-      const { email, password, full_name, display_name } = req.body; // Получаем от пользователя данные для входа
-      const candidate = await User.findOne({ email }); // Ищем кандидата в базе данных
+      const { email, password, full_name, display_name } = req.body; // Getting data from user
+      const candidate = await User.findOne({ email }); // Searching candidate in database
       if (candidate) {
-        // Если находим шлём ошибки
+        // If not finded send error
         return res.status(422).json({
           message: "User already exist",
           errors: [{ msg: "User already exist", param: "email" }],
@@ -40,9 +40,9 @@ router.post(
         expiresIn: "12h",
       });
       console.log("**** New user created: ", email);
-      fac.createBucketIfNotExist(user.id).then((createBucketRes) => {
+      forgeDataManagementApiClient.createBucketIfNotExist(user.id).then((createBucketRes) => {
         console.log(`**** Create bucket if not exist when user register: \n\n`, createBucketRes.body);
-      }, fac.defaultHandleError);
+      }, forgeDataManagementApiClient.defaultHandleError);
       return res.status(201).json({ token, user });
     } catch (e) {
       console.log(e);

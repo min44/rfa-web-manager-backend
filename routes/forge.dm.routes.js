@@ -1,8 +1,8 @@
 const { Router } = require("express");
 const fileUpload = require("express-fileupload");
-const fac = require("./forge.client");
 const jwt = require("jsonwebtoken");
 const config = require("config");
+const forgeDataManagementApiClient = require("./forge.dm.apiclient");
 
 const router = Router();
 router.use(fileUpload());
@@ -13,64 +13,64 @@ function getUserId(req) {
   return userId;
 }
 
-// /api/forge/oss/getApplicationName
-router.get("/oss/getapplicationName", (req, res) => {
-  fac.getApplicationName().then(
+// /api/forge/dm/getApplicationName
+router.get("/dm/getapplicationName", (req, res) => {
+  forgeDataManagementApiClient.getApplicationName().then(
     (response) => res.status(200).json(response.data),
     (reject) => res.status(404).json(reject)
   );
 });
 
-// /api/forge/oss/getbuckets
-router.get("/oss/getbuckets", (req, res) => {
-  fac.getBuckets().then(
+// /api/forge/dm/getbuckets
+router.get("/dm/getbuckets", (req, res) => {
+  forgeDataManagementApiClient.getBuckets().then(
     (response) => res.status(response.statusCode).json(response),
     (reject) => res.status(reject.statusCode).json(reject)
   );
 });
 
-// /api/forge/oss/file/upload
-router.post("/oss/file/upload", (req, res) => {
+// /api/forge/dm/file/upload
+router.post("/dm/file/upload", (req, res) => {
   var files = req.files.files;
   const bucketKey = getUserId(req);
-  fac.uploadFile(bucketKey, files).then(
+  forgeDataManagementApiClient.uploadFile(bucketKey, files).then(
     (response) => res.status(response.statusCode).json(response),
     (reject) => res.status(reject.statusCode).json(reject)
   );
 });
 
-// /api/forge/oss/getbucketdetails
-router.post("/oss/getbucketdetails", (req, res) => {
+// /api/forge/dm/getbucketdetails
+router.post("/dm/getbucketdetails", (req, res) => {
   const { bucketKey } = req.body;
-  fac.getBucketDetails(bucketKey).then(
+  forgeDataManagementApiClient.getBucketDetails(bucketKey).then(
     (response) => res.status(response.statusCode).json(response),
     (reject) => res.status(reject.statusCode).json(reject)
   );
 });
 
-// /api/forge/oss/deletebucket
-router.post("/oss/deletebucket", (req, res) => {
+// /api/forge/dm/deletebucket
+router.post("/dm/deletebucket", (req, res) => {
   const { bucketKey } = req.body;
-  fac.deleteBucket(bucketKey).then(
+  forgeDataManagementApiClient.deleteBucket(bucketKey).then(
     (response) => res.status(response.statusCode).json(response),
     (reject) => res.status(reject.statusCode).json(reject)
   );
 });
 
-// /api/forge/oss/getobjects
-router.get("/oss/getobjects", (req, res) => {
+// /api/forge/dm/getobjects
+router.get("/dm/getobjects", (req, res) => {
   const bucketKey = getUserId(req);
-  fac.getObjects(bucketKey).then(
+  forgeDataManagementApiClient.getObjects(bucketKey).then(
     (response) => res.status(response.statusCode).json(response),
     (reject) => res.status(reject.statusCode).json(reject)
   );
 });
 
-// /api/forge/oss/deleteobject
-router.post("/oss/deleteobject", (req, res) => {
+// /api/forge/dm/deleteobject
+router.post("/dm/deleteobject", (req, res) => {
   const bucketKey = getUserId(req);
-  const { objectName } = req.body;
-  fac.deleteObject(bucketKey, objectName).then(
+  const { objectKey } = req.body;
+  forgeDataManagementApiClient.deleteObject(bucketKey, objectKey).then(
     (response) => res.status(response.statusCode).json(response),
     (reject) => res.status(reject.statusCode).json(reject)
   );

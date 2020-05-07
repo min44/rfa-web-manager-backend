@@ -1,5 +1,5 @@
 const ForgeSDK = require("forge-apis");
-const apiClient = require("./apiClient");
+const axios = require("axios");
 
 function defaultHandleError(err) {
   console.error("\x1b[31m Error:", err, "\x1b[0m");
@@ -13,7 +13,7 @@ const objectsApi = new ForgeSDK.ObjectsApi(); // Objects Client
 const oAuth2TwoLegged = new ForgeSDK.AuthClientTwoLegged(
   FORGE_CLIENT_ID,
   FORGE_CLIENT_SECRET,
-  ["data:write", "data:read", "bucket:read", "bucket:update", "bucket:create", "bucket:delete"],
+  ["data:write", "data:read", "bucket:read", "bucket:update", "bucket:create", "bucket:delete", "code:all"],
   true
 );
 
@@ -22,12 +22,12 @@ const oAuth2TwoLegged = new ForgeSDK.AuthClientTwoLegged(
  */
 oAuth2TwoLegged.authenticate().then(() => {
   console.log("**** Got Credentials");
-  console.log("isAuthorized: ", oAuth2TwoLegged.isAuthorized());
+  console.log("Data Management isAuthorized: ", oAuth2TwoLegged.isAuthorized());
 });
 
 function getApplicationName() {
   console.log("**** Getting application nickname");
-  return apiClient.get("https://developer.api.autodesk.com/da/us-east/v3/forgeapps/me", {
+  return axios.get("https://developer.api.autodesk.com/da/us-east/v3/forgeapps/me", {
     headers: {
       "content-type": "application/json",
       Authorization: "Bearer " + oAuth2TwoLegged.getCredentials().access_token,
@@ -97,7 +97,52 @@ function uploadFile(bucketKey, files) {
           oAuth2TwoLegged.getCredentials()
         )
         .then(
-          (res) => resolve(res),
+          () => {
+            objectsApi
+              .createSignedResource(
+                bucketKey,
+                file.name,
+                {
+                  minutesExpiration: 60,
+                  singleUse: false,
+                },
+                { access: "read" },
+                oAuth2TwoLegged,
+                oAuth2TwoLegged.getCredentials()
+              )
+              .then(
+                (res) => {
+                  resolve(res);
+                  console.log(res);
+                  objectsApi
+                    .createSignedResource(
+                      bucketKey,
+                      file.name + "output",
+                      {
+                        minutesExpiration: 60,
+                        singleUse: false,
+                      },
+                      { access: "readwrite" },
+                      oAuth2TwoLegged,
+                      oAuth2TwoLegged.getCredentials()
+                    )
+                    .then(
+                      (res) => {
+                        resolve(res);
+                        console.log(res);
+                      },
+                      (err) => {
+                        reject(err);
+                        console.log(err);
+                      }
+                    );
+                },
+                (err) => {
+                  reject(err);
+                  console.log(err);
+                }
+              );
+          },
           (err) => reject(err)
         );
     });
@@ -121,4 +166,5 @@ module.exports = {
   createBucketIfNotExist,
   uploadFile,
   getObjects,
+  FORGE_CLIENT_ID,
 };
