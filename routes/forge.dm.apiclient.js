@@ -1,29 +1,14 @@
 const ForgeSDK = require("forge-apis");
 const axios = require("axios");
+const { oAuth2TwoLegged } = require("./forge.auth");
+const { forgeDesignAutomationApiClient } = require("./forge.auth");
 
 function defaultHandleError(err) {
   console.error("\x1b[31m Error:", err, "\x1b[0m");
 }
 
-const FORGE_CLIENT_ID = process.env.FORGE_CLIENT_ID;
-const FORGE_CLIENT_SECRET = process.env.FORGE_CLIENT_SECRET;
 const bucketsApi = new ForgeSDK.BucketsApi(); // Buckets Client
 const objectsApi = new ForgeSDK.ObjectsApi(); // Objects Client
-
-const oAuth2TwoLegged = new ForgeSDK.AuthClientTwoLegged(
-  FORGE_CLIENT_ID,
-  FORGE_CLIENT_SECRET,
-  ["data:write", "data:read", "bucket:read", "bucket:update", "bucket:create", "bucket:delete", "code:all"],
-  true
-);
-
-/**
- * Create an access token and run the API calls.
- */
-oAuth2TwoLegged.authenticate().then(() => {
-  console.log("**** Got Credentials");
-  console.log("Data Management isAuthorized: ", oAuth2TwoLegged.isAuthorized());
-});
 
 function getApplicationName() {
   console.log("**** Getting application nickname");
@@ -82,10 +67,13 @@ function createBucketIfNotExist(bucketKey) {
 }
 
 function uploadFile(bucketKey, files) {
-  console.log("**** Uploading files: ");
   return new Promise((resolve, reject) => {
     Array.isArray(files) ? (files = files) : (files = [files]);
+    console.log("**** Uploading files count: ", files.length);
+    const signedResourcesData = [];
+    let itemsProcessed = 0;
     files.forEach((file) => {
+      const signedResourcesFile = { fileName: file.name, rvtFile: "", result: "" };
       objectsApi
         .uploadObject(
           bucketKey,
@@ -96,55 +84,80 @@ function uploadFile(bucketKey, files) {
           oAuth2TwoLegged,
           oAuth2TwoLegged.getCredentials()
         )
-        .then(
-          () => {
-            objectsApi
-              .createSignedResource(
-                bucketKey,
-                file.name,
-                {
-                  minutesExpiration: 60,
-                  singleUse: false,
-                },
-                { access: "read" },
-                oAuth2TwoLegged,
-                oAuth2TwoLegged.getCredentials()
-              )
-              .then(
-                (res) => {
-                  resolve(res);
-                  console.log(res);
-                  objectsApi
-                    .createSignedResource(
-                      bucketKey,
-                      file.name + "output",
-                      {
-                        minutesExpiration: 60,
-                        singleUse: false,
+        .then(() => {
+          console.log(">>>> Upploaded success \n", file.name, file.size);
+          objectsApi
+            .createSignedResource(
+              bucketKey,
+              file.name,
+              {
+                minutesExpiration: 10,
+                singleUse: false,
+              },
+              { access: "read" },
+              oAuth2TwoLegged,
+              oAuth2TwoLegged.getCredentials()
+            )
+            .then((res) => {
+              signedResourcesFile.rvtFile = res.body.signedUrl;
+              objectsApi
+                .createSignedResource(
+                  bucketKey,
+                  file.name.split(".").slice(0, -1).join(".") + "_extractedParameters.json",
+                  {
+                    minutesExpiration: 10,
+                    singleUse: false,
+                  },
+                  { access: "readwrite" },
+                  oAuth2TwoLegged,
+                  oAuth2TwoLegged.getCredentials()
+                )
+                .then((res) => {
+                  signedResourcesFile.result = res.body.signedUrl;
+                  const workItem = {
+                    activityId: "clforgeapp.ExtractRvtParamActivity+test",
+                    arguments: {
+                      rvtFile: {
+                        url: signedResourcesFile.rvtFile,
                       },
-                      { access: "readwrite" },
-                      oAuth2TwoLegged,
-                      oAuth2TwoLegged.getCredentials()
-                    )
-                    .then(
-                      (res) => {
-                        resolve(res);
-                        console.log(res);
+                      result: {
+                        verb: "put",
+                        url: signedResourcesFile.result,
                       },
-                      (err) => {
-                        reject(err);
-                        console.log(err);
-                      }
-                    );
-                },
-                (err) => {
-                  reject(err);
-                  console.log(err);
-                }
-              );
-          },
-          (err) => reject(err)
-        );
+                    },
+                  };
+                  forgeDesignAutomationApiClient.createWorkItem(workItem).then(
+                    (res) => {
+                      var queryLoop = setInterval(() => {
+                        forgeDesignAutomationApiClient.getWorkitemStatus(res.id).then(
+                          (res) => {
+                            if (res.status != "inprogress") {
+                              signedResourcesData.push(signedResourcesFile);
+                              itemsProcessed = itemsProcessed + 1;
+                              if (itemsProcessed === files.length) {
+                                res.signedResourcesData = signedResourcesData;
+                                res.statusCode = 200;
+                                console.log("Signed resources >>>>", res.signedResourcesData);
+                                resolve(res);
+                              }
+                              clearInterval(queryLoop);
+                            }
+                          },
+                          (err) => {
+                            reject(err);
+                            console.log(err);
+                          }
+                        );
+                      }, 3000);
+                    },
+                    (err) => {
+                      reject(err);
+                      console.log(err);
+                    }
+                  );
+                });
+            });
+        });
     });
   });
 }
@@ -166,5 +179,4 @@ module.exports = {
   createBucketIfNotExist,
   uploadFile,
   getObjects,
-  FORGE_CLIENT_ID,
 };

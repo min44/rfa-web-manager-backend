@@ -1,21 +1,8 @@
 const { Router } = require("express");
-let AutodeskForgeDesignAutomation = require("autodesk.forge.designautomation");
-const forgeDataManagementApiClient = require("./forge.dm.apiclient");
+const { forgeDesignAutomationApiClient } = require("./forge.auth");
 const axios = require("axios");
 const fs = require("fs");
 const FormData = require("form-data");
-
-const apiClientDefault = AutodeskForgeDesignAutomation.AutodeskForgeDesignAutomationClient.instance;
-
-setTimeout(() => {
-  const oauth = apiClientDefault.authManager.authentications["2-legged"];
-  oauth.accessToken = forgeDataManagementApiClient.oAuth2TwoLegged.getCredentials().access_token;
-  if (oauth.oauth2Token.accessToken) {
-    console.log("Design Automation isAuthorized: ");
-  }
-}, 3000);
-
-const forgeDesignAutomationApiClient = new AutodeskForgeDesignAutomation.AutodeskForgeDesignAutomationApi();
 
 const router = Router();
 
@@ -57,8 +44,8 @@ router.post("/da/createappbundle", (req, res) => {
   const { id } = req.body;
   const appBundle = {
     id,
-    engine: "Autodesk.Revit+2018",
-    description: "Delete Walls AppBundle based on Revit 2018",
+    engine: "Autodesk.Revit+2019",
+    description: "Some UpdateParam Revit 2019",
   };
   forgeDesignAutomationApiClient.createAppBundle(appBundle).then(
     (response) => {
@@ -68,7 +55,7 @@ router.post("/da/createappbundle", (req, res) => {
       Object.keys(response.uploadParameters.formData).forEach((key) => {
         formData.append(key, response.uploadParameters.formData[key]);
       });
-      const filePath = __dirname + "/DeleteWallsApp.zip";
+      const filePath = __dirname + "\\forge.appbundles\\ExtractRvtParam.zip";
       formData.append("file", fs.createReadStream(filePath), { knownLength: fs.statSync(filePath).size });
       const headers = {
         ...formData.getHeaders(),
@@ -124,7 +111,7 @@ router.post("/da/createactivity", (req, res) => {
   const activity = {
     id: id,
     commandLine: [
-      "$(engine.path)\\\\revitcoreconsole.exe /i $(args[rvtFile].path) /al $(appbundles[DeleteWallsApp].path)",
+      "$(engine.path)\\\\revitcoreconsole.exe /i $(args[rvtFile].path) /al $(appbundles[ExtractRvtParamAppBundle].path)",
     ],
     parameters: {
       rvtFile: {
@@ -135,17 +122,31 @@ router.post("/da/createactivity", (req, res) => {
         required: true,
         localName: "$(rvtFile)",
       },
+      // inputJson: {
+      //   verb: "get",
+      //   description: "",
+      //   localName: "params.json",
+      //   zip: false,
+      //   ondemand: false,
+      // },
       result: {
+        verb: "put",
+        description: "",
+        localName: "extractedParameters_parameters.json",
         zip: false,
         ondemand: false,
-        verb: "put",
-        description: "Results",
-        required: true,
-        localName: "result.rvt",
-      },
+      }
+      // result: {
+      //   zip: false,
+      //   ondemand: false,
+      //   verb: "put",
+      //   description: "Results",
+      //   required: true,
+      //   localName: "result.rvt",
+      // },
     },
-    engine: "Autodesk.Revit+2018",
-    appbundles: ["clforgeapp.DeleteWallsApp+test"],
+    engine: "Autodesk.Revit+2019",
+    appbundles: ["clforgeapp.ExtractRvtParamAppBundle+test"],
     description: "Deletes walls from Revit file.",
   };
 
@@ -207,17 +208,21 @@ router.post("/da/createworkitem", (req, res) => {
   const { id } = req.body;
 
   const workItem = {
-    activityId: "clforgeapp.DeleteWallsActivity+test",
+    activityId: "clforgeapp.ExtractRvtParamActivity+test",
     arguments: {
       rvtFile: {
-        url:
-          "https://developer.api.autodesk.com/oss/v2/signedresources/e3f21497-f014-4823-9953-2b43a5a95b7c?region=US",
-        // pathInZip: "PATH_TO_RVT_FILE_WITHIN_ZIP_FILE",
+        url: rvtFileUrl,
+      },
+      inputJson: {
+        url: "data:application/json,{height:12, width:12}",
+      },
+      outputJson: {
+        verb: "put",
+        url: outputJsonUrl,
       },
       result: {
         verb: "put",
-        url:
-          "https://developer.api.autodesk.com/oss/v2/signedresources/32895545-22e2-4412-a72c-ac356c5ae700?region=US",
+        url: resultUrl,
       },
     },
   };
@@ -229,13 +234,13 @@ router.post("/da/createworkitem", (req, res) => {
       setInterval(() => {
         forgeDesignAutomationApiClient.getWorkitemStatus(response.id).then(
           (response) => {
-            console.log("API called successfully. Returned data: \n", response,'\n' , Object.keys(response));
+            console.log("API called successfully. Returned data: \n", response, "\n");
           },
           (error) => {
             console.error(error);
           }
         );
-      }, 2000);
+      }, 4000);
     },
     (reject) => {
       res.status(404).json(reject);
