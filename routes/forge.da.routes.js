@@ -3,6 +3,7 @@ const { forgeDesignAutomationApiClient } = require("./forge.auth");
 const axios = require("axios");
 const fs = require("fs");
 const FormData = require("form-data");
+const path = require("path");
 
 const router = Router();
 
@@ -55,7 +56,7 @@ router.post("/da/createappbundle", (req, res) => {
       Object.keys(response.uploadParameters.formData).forEach((key) => {
         formData.append(key, response.uploadParameters.formData[key]);
       });
-      const filePath = __dirname + "\\forge.appbundles\\ExtractRvtParam.zip";
+      const filePath = path.join(__dirname , "forge.appbundles", "ExtractRvtParam.zip");
       formData.append("file", fs.createReadStream(filePath), { knownLength: fs.statSync(filePath).size });
       const headers = {
         ...formData.getHeaders(),
@@ -135,7 +136,7 @@ router.post("/da/createactivity", (req, res) => {
         localName: "extractedParameters_parameters.json",
         zip: false,
         ondemand: false,
-      }
+      },
       // result: {
       //   zip: false,
       //   ondemand: false,
