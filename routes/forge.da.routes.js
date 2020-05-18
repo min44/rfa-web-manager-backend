@@ -30,7 +30,6 @@ router.get("/da/getappbundles", (req, res) => {
   forgeDesignAutomationApiClient.getAppBundles().then(
     (response) => {
       res.status(200).json(response.data);
-      console.log(response);
     },
     (reject) => {
       res.status(404).json(reject);
@@ -46,12 +45,11 @@ router.post("/da/createappbundle", (req, res) => {
   const appBundle = {
     id,
     engine: "Autodesk.Revit+2019",
-    description: "Some UpdateParam Revit 2019",
+    description: "rfa parameter extractor Revit 2019",
   };
   forgeDesignAutomationApiClient.createAppBundle(appBundle).then(
     (response) => {
       res.status(202).end();
-      console.log(">>> response >>> \n\n\n", response);
       let formData = new FormData();
       Object.keys(response.uploadParameters.formData).forEach((key) => {
         formData.append(key, response.uploadParameters.formData[key]);
@@ -65,7 +63,6 @@ router.post("/da/createappbundle", (req, res) => {
       axios.post(response.uploadParameters.endpointURL, formData, { headers }).then(
         (response) => {
           res.status(202).end();
-          console.log(">>> response >>> \n\n\n", response);
           const alias = {
             version: 1,
             id: "test",
@@ -110,7 +107,7 @@ router.post("/da/createactivity", (req, res) => {
   const { id } = req.body;
 
   const activity = {
-    id: id,
+    id,
     commandLine: [
       "$(engine.path)\\\\revitcoreconsole.exe /i $(args[rvtFile].path) /al $(appbundles[ExtractRvtParamAppBundle].path)",
     ],
@@ -121,40 +118,26 @@ router.post("/da/createactivity", (req, res) => {
         verb: "get",
         description: "Input Revit model",
         required: true,
-        localName: "$(rvtFile)",
+        localName: "input.rfa",
       },
-      // inputJson: {
-      //   verb: "get",
-      //   description: "",
-      //   localName: "params.json",
-      //   zip: false,
-      //   ondemand: false,
-      // },
       result: {
         verb: "put",
-        description: "",
-        localName: "extractedParameters_parameters.json",
+        description: "Extracted result",
+        localName: "extractedParameters.json",
+        required: true,
         zip: false,
         ondemand: false,
       },
-      // result: {
-      //   zip: false,
-      //   ondemand: false,
-      //   verb: "put",
-      //   description: "Results",
-      //   required: true,
-      //   localName: "result.rvt",
-      // },
     },
     engine: "Autodesk.Revit+2019",
     appbundles: ["clforgeapp.ExtractRvtParamAppBundle+test"],
-    description: "Deletes walls from Revit file.",
+    description: "Extract parameters from rfa to json",
   };
 
   forgeDesignAutomationApiClient.createActivity(activity).then(
     (response) => {
+      console.log(response);
       res.status(202).end();
-      console.log(">>> response >>> \n\n\n", response);
       const alias = {
         version: 1,
         id: "test",
@@ -173,7 +156,6 @@ router.post("/da/createactivity", (req, res) => {
     (reject) => {
       res.status(404).json(reject);
       console.log(">>> reject >>> \n\n\n", reject);
-      console.log(">>> activity >>> \n\n\n", activity);
     }
   );
 });
@@ -184,7 +166,6 @@ router.get("/da/getactivities", (req, res) => {
   forgeDesignAutomationApiClient.getActivities().then(
     (response) => {
       res.status(200).json(response.data);
-      console.log(response);
     },
     (reject) => {
       res.status(404).json(reject);

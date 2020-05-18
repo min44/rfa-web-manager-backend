@@ -24,8 +24,10 @@ router.post(
           errors: errors.array(),
         });
       }
-      const { email, password, full_name, display_name } = req.body; // Getting data from user
-      const candidate = await User.findOne({ email }); // Searching candidate in database
+      // Get data from user
+      const { email, password, full_name, display_name } = req.body;
+      // Search candidate in database
+      const candidate = await User.findOne({ email }); 
       if (candidate) {
         // If not finded send error
         return res.status(422).json({

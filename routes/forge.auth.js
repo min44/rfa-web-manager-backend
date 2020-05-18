@@ -25,14 +25,15 @@ oAuth2TwoLegged.authenticate().then(() => {
   const forgeDesignAutomationAuth = () => {
     oauth.accessToken = oAuth2TwoLegged.getCredentials().access_token;
     if (oauth.oauth2Token.accessToken) {
-      console.log("Design Automation isAuthorized: ");
+      console.log("Design Automation isAuthorized")
     }
   };
+
   forgeDesignAutomationAuth();
 
   setInterval(() => {
     forgeDesignAutomationAuth();
-  }, 3600000);
+  }, 3602000);
 });
 
 module.exports.oAuth2TwoLegged = oAuth2TwoLegged;

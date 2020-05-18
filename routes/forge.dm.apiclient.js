@@ -35,11 +35,6 @@ function deleteBucket(bucketKey) {
   return bucketsApi.deleteBucket(bucketKey, oAuth2TwoLegged, oAuth2TwoLegged.getCredentials());
 }
 
-function deleteObject(bucketKey, objectName) {
-  console.log("**** Delete object: ", objectName);
-  return objectsApi.deleteObject(bucketKey, objectName, oAuth2TwoLegged, oAuth2TwoLegged.getCredentials());
-}
-
 function createBucket(bucketKey) {
   console.log("**** Creating Bucket: " + bucketKey);
   var createBucketJson = {
@@ -53,7 +48,7 @@ function createBucketIfNotExist(bucketKey) {
   console.log("**** Creating bucket if not exist: ", bucketKey);
   return new Promise((resolve, reject) => {
     getBucketDetails(bucketKey).then(
-      (resp) => resolve(resp),
+      (res) => resolve(res),
       (err) => {
         if (err.statusCode === 404) {
           createBucket(bucketKey).then(
@@ -61,6 +56,84 @@ function createBucketIfNotExist(bucketKey) {
             (err) => reject(err)
           );
         } else reject(err);
+      }
+    );
+  });
+}
+
+function getObjects(bucketKey) {
+  console.log("**** Getting objects of certain bucket: ", bucketKey);
+  return objectsApi.getObjects(bucketKey, {}, oAuth2TwoLegged, oAuth2TwoLegged.getCredentials());
+}
+
+function getAllObjects() {
+  console.log("**** Getting objects of all buckets");
+  let itemsProcessed = 0;
+  let appObjects = [];
+  return new Promise((resolve, reject) => {
+    getBuckets().then((res) => {
+      const bucketsKeys = res.body.items.map((bucket) => bucket.bucketKey);
+      bucketsKeys.forEach((bucketKey) => {
+        getObjects(bucketKey).then(
+          (res) => {
+            itemsProcessed = itemsProcessed + 1;
+            res.body.items.forEach((item) => { appObjects.push(item) })
+            if (itemsProcessed === bucketsKeys.length) {
+              resolve(appObjects);
+            }
+          },
+          (err) => {
+            reject(err);
+            console.log(err);
+          }
+        );
+      });
+    });
+  });
+}
+
+function deleteObject(bucketKey, objectName) {
+  console.log("**** Delete object: ", objectName);
+  return objectsApi.deleteObject(bucketKey, objectName, oAuth2TwoLegged, oAuth2TwoLegged.getCredentials());
+}
+
+function getObject(bucketKey, objectName) {
+  console.log("**** Download certain object: ", objectName);
+  return objectsApi.getObject(bucketKey, objectName, {}, oAuth2TwoLegged, oAuth2TwoLegged.getCredentials());
+}
+
+function getExtractedParametersFiles(bucketKey) {
+  console.log("**** Get certain extracted parameters files: ", bucketKey);
+  let itemsProcessed = 0;
+  let extractedParametersFiles = [];
+  return new Promise((resolve, reject) => {  
+    getObjects(bucketKey).then(
+      (res) => {
+        let filteredObjects = res.body.items.filter((objectData) => {
+          return objectData.objectKey.includes("extractedParameters.json");
+        });
+        filteredObjects.forEach((item) => {
+          getObject(bucketKey, item.objectKey).then(
+            (res) => {
+              itemsProcessed = itemsProcessed + 1;
+              extractedParametersFiles.push(JSON.parse(res.body.toString("utf8").slice(1)));
+              if (itemsProcessed === filteredObjects.length) {
+                const response = {};
+                response.extractedParametersFiles = extractedParametersFiles;
+                response.statusCode = 200;
+                resolve(response);
+              }
+            },
+            (err) => {
+              reject(err);
+              console.log(err);
+            }
+          );
+        });
+      },
+      (err) => {
+        reject(err);
+        console.log(err);
       }
     );
   });
@@ -128,6 +201,7 @@ function uploadFile(bucketKey, files) {
                   };
                   forgeDesignAutomationApiClient.createWorkItem(workItem).then(
                     (res) => {
+                      console.log(workItem);
                       var queryLoop = setInterval(() => {
                         forgeDesignAutomationApiClient.getWorkitemStatus(res.id).then(
                           (res) => {
@@ -137,7 +211,7 @@ function uploadFile(bucketKey, files) {
                               if (itemsProcessed === files.length) {
                                 res.signedResourcesData = signedResourcesData;
                                 res.statusCode = 200;
-                                console.log("Signed resources >>>>", res.signedResourcesData);
+                                console.log("Signed resources >>>>", res);
                                 resolve(res);
                               }
                               clearInterval(queryLoop);
@@ -162,11 +236,6 @@ function uploadFile(bucketKey, files) {
   });
 }
 
-function getObjects(bucketKey) {
-  console.log("**** Getting all objects: ", bucketKey);
-  return objectsApi.getObjects(bucketKey, {}, oAuth2TwoLegged, oAuth2TwoLegged.getCredentials());
-}
-
 module.exports = {
   deleteObject,
   defaultHandleError,
@@ -179,4 +248,6 @@ module.exports = {
   createBucketIfNotExist,
   uploadFile,
   getObjects,
+  getAllObjects,
+  getExtractedParametersFiles,
 };
