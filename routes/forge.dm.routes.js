@@ -79,7 +79,7 @@ router.get("/dm/getextractedparametersfiles", (req, res) => {
   const bucketKey = getUserId(req);
   forgeDataManagementApiClient.getExtractedParametersFiles(bucketKey).then(
     (response) => {
-      res.status(response.statusCode).json(response)
+      res.status(response.statusCode).json(response);
     },
     (reject) => res.status(reject.statusCode).json(reject)
   );
@@ -87,8 +87,11 @@ router.get("/dm/getextractedparametersfiles", (req, res) => {
 
 // /api/forge/dm/deleteobject
 router.post("/dm/deleteobject", (req, res) => {
-  const bucketKey = getUserId(req);
-  const { objectKey } = req.body;
+  let { bucketKey, objectKey } = req.body;
+  if (!bucketKey) {
+    bucketKey = getUserId(req);
+  }
+
   forgeDataManagementApiClient.deleteObject(bucketKey, objectKey).then(
     (response) => res.status(response.statusCode).json(response),
     (reject) => res.status(reject.statusCode).json(reject)

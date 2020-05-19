@@ -8,33 +8,34 @@ const oAuth2TwoLegged = new ForgeSDK.AuthClientTwoLegged(
   FORGE_CLIENT_ID,
   FORGE_CLIENT_SECRET,
   ["data:write", "data:read", "bucket:read", "bucket:update", "bucket:create", "bucket:delete", "code:all"],
-  true
+  false
 );
 
+// DesignAutomation client init
 const apiClientDefault = AutodeskForgeDesignAutomation.AutodeskForgeDesignAutomationClient.instance;
 const forgeDesignAutomationApiClient = new AutodeskForgeDesignAutomation.AutodeskForgeDesignAutomationApi();
+const oauth = apiClientDefault.authManager.authentications["2-legged"];
 
-// Data management Authorize
-oAuth2TwoLegged.authenticate().then(() => {
-  console.log("**** Got Credentials");
-  console.log("Data Management isAuthorized: ", oAuth2TwoLegged.isAuthorized());
-
-  // Design Automation Authorize
-  const oauth = apiClientDefault.authManager.authentications["2-legged"];
-
-  const forgeDesignAutomationAuth = () => {
-    oauth.accessToken = oAuth2TwoLegged.getCredentials().access_token;
-    if (oauth.oauth2Token.accessToken) {
-      console.log("Design Automation isAuthorized")
+// Common authorization
+const authorizationCommon = () => {
+  oAuth2TwoLegged.authenticate().then(() => {
+    if (oAuth2TwoLegged.isAuthorized()) {
+      console.log("Data Management is Authorized");
+      // DesignAutomation api client autorization
+      oauth.accessToken = oAuth2TwoLegged.getCredentials().access_token;
+      if (oauth.oauth2Token.accessToken) {
+        console.log("Design Automation is Authorized");
+      }
     }
-  };
+  });
+};
 
-  forgeDesignAutomationAuth();
+// autorefresh authorization
+setInterval(() => {
+  authorizationCommon();
+}, 60 * 1000 * 55 + 10 * 1000);
 
-  setInterval(() => {
-    forgeDesignAutomationAuth();
-  }, 3602000);
-});
+authorizationCommon();
 
 module.exports.oAuth2TwoLegged = oAuth2TwoLegged;
 module.exports.forgeDesignAutomationApiClient = forgeDesignAutomationApiClient;

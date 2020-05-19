@@ -44,8 +44,9 @@ router.post(
       console.log("**** New user created: ", email);
       forgeDataManagementApiClient.createBucketIfNotExist(user.id).then((createBucketRes) => {
         console.log(`**** Create bucket if not exist when user register: \n\n`, createBucketRes.body);
+        return res.status(201).json({ token, user });
       }, forgeDataManagementApiClient.defaultHandleError);
-      return res.status(201).json({ token, user });
+      
     } catch (e) {
       console.log(e);
       res.status(500).json({
