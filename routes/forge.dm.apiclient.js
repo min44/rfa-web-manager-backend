@@ -77,7 +77,9 @@ function getAllObjects() {
         getObjects(bucketKey).then(
           (res) => {
             itemsProcessed = itemsProcessed + 1;
-            res.body.items.forEach((item) => { appObjects.push(item) })
+            res.body.items.forEach((item) => {
+              appObjects.push(item);
+            });
             if (itemsProcessed === bucketsKeys.length) {
               resolve(appObjects);
             }
@@ -106,30 +108,40 @@ function getExtractedParametersFiles(bucketKey) {
   console.log("**** Get certain extracted parameters files: ", bucketKey);
   let itemsProcessed = 0;
   let extractedParametersFiles = [];
-  return new Promise((resolve, reject) => {  
+  return new Promise((resolve, reject) => {
     getObjects(bucketKey).then(
       (res) => {
-        let filteredObjects = res.body.items.filter((objectData) => {
-          return objectData.objectKey.includes("extractedParameters.json");
-        });
-        filteredObjects.forEach((item) => {
-          getObject(bucketKey, item.objectKey).then(
-            (res) => {
-              itemsProcessed = itemsProcessed + 1;
-              extractedParametersFiles.push(JSON.parse(res.body.toString("utf8").slice(1)));
-              if (itemsProcessed === filteredObjects.length) {
-                const response = {};
-                response.extractedParametersFiles = extractedParametersFiles;
-                response.statusCode = 200;
-                resolve(response);
+        let filteredObjects = res.body.items.filter((objectData) =>
+          objectData.objectKey.includes("extractedParameters.json")
+        );
+        if (filteredObjects.length > 0) {
+          console.log("filteredObjects not null", filteredObjects)
+          filteredObjects.forEach((item) => {
+            getObject(bucketKey, item.objectKey).then(
+              (res) => {
+                itemsProcessed = itemsProcessed + 1;
+                extractedParametersFiles.push(JSON.parse(res.body.toString("utf8").slice(1)));
+                if (itemsProcessed === filteredObjects.length) {
+                  const response = {};
+                  response.extractedParametersFiles = extractedParametersFiles;
+                  response.statusCode = 200;
+                  resolve(response);
+                }
+              },
+              (err) => {
+                reject(err);
+                console.log(err);
               }
-            },
-            (err) => {
-              reject(err);
-              console.log(err);
-            }
-          );
-        });
+            );
+          });
+
+        } else {
+          console.log("filteredObjects else", filteredObjects)
+          const response = {};
+          response.extractedParametersFiles = extractedParametersFiles;
+          response.statusCode = 200;
+          resolve(response);
+        }
       },
       (err) => {
         reject(err);
