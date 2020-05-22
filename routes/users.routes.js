@@ -2,6 +2,7 @@ const { Router } = require("express");
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const config = require("config");
+const chalk = require("chalk");
 
 const router = Router();
 
@@ -14,8 +15,12 @@ function getUserId(req) {
 // /api/users/profile
 router.get("/profile", async (req, res) => {
   try {
+    var dateNow = new Date();
     const userId = getUserId(req);
     const user = await User.findOne({ _id: userId }); // Get user by userId from database
+    user.last_activity_at = `${dateNow}`;
+    await user.save();
+    console.log(chalk.greenBright("**** User authorized: ", user.email, "\n", dateNow));
     return res.status(200).json({ user }); // Send the user to the client
   } catch (e) {
     res.status(500).json({ message: "Something wrong, try again" });
@@ -25,8 +30,6 @@ router.get("/profile", async (req, res) => {
 // /api/users/users
 router.get("/users", async (req, res) => {
   try {
-    const userId = getUserId(req);
-    const user = await User.findOne({ _id: userId }); // Get user by userId from database
     const users = await User.find({}); // Getting all user from database
     return res.status(200).json({ users }); // Send the user to the client
   } catch (e) {

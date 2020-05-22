@@ -5,8 +5,15 @@ const jwt = require("jsonwebtoken");
 const config = require("config");
 const { check, validationResult } = require("express-validator");
 const forgeDataManagementApiClient = require("./forge.dm.apiclient");
+const chalk = require("chalk");
 
 const router = Router();
+
+function getUserId(req) {
+  const [bearer, token] = req.headers.authorization.split(" "); // Getting client jwt token
+  const { userId, iat, exp } = jwt.verify(token, config.get("jwtSecret")); // Verify teken. userId extraction
+  return userId;
+}
 
 // /api/auth/register
 router.post(
@@ -27,7 +34,7 @@ router.post(
       // Get data from user
       const { email, password, full_name, display_name } = req.body;
       // Search candidate in database
-      const candidate = await User.findOne({ email }); 
+      const candidate = await User.findOne({ email });
       if (candidate) {
         // If not finded send error
         return res.status(422).json({
@@ -36,17 +43,25 @@ router.post(
         });
       }
       const hashedPassword = await bcrypt.hash(password, 12);
-      const user = new User({ email, password: hashedPassword, display_name, full_name });
+      var dateNow = new Date();
+      const user = new User({
+        email,
+        password: hashedPassword,
+        display_name,
+        full_name,
+        created_at: `${dateNow}`,
+        last_activity_at: `${dateNow}`,
+        language: "ENU",
+      });
       await user.save();
       const token = jwt.sign({ userId: user.id }, config.get("jwtSecret"), {
         expiresIn: "12h",
       });
-      console.log("**** New user created: ", email);
+      console.log(chalk.greenBright("**** New user created: ", email, "\n", dateNow));
       forgeDataManagementApiClient.createBucketIfNotExist(user.id).then((createBucketRes) => {
-        console.log(`**** Create bucket if not exist when user register: \n\n`, createBucketRes.body);
+        console.log(`**** Create bucket if not exist when user register: \n`, createBucketRes.body);
         return res.status(201).json({ token, user });
       }, forgeDataManagementApiClient.defaultHandleError);
-      
     } catch (e) {
       console.log(e);
       res.status(500).json({
@@ -88,9 +103,13 @@ router.post(
       const token = jwt.sign({ userId: user.id }, config.get("jwtSecret"), {
         expiresIn: "12h",
       });
-      res.status(201).json({ token, user });
+      var dateNow = new Date();
+      user.last_activity_at = `${dateNow}`;
+      await user.save();
+      console.log(chalk.greenBright("**** User is login: ", user.email, "\n", dateNow));
+      return res.status(201).json({ token, user });
     } catch (e) {
-      res.status(500).json({
+      return res.status(500).json({
         message: "Something wrong, try again",
         errors: "Something wrong",
       });
@@ -101,9 +120,15 @@ router.post(
 // /api/auth/logout
 router.post("/logout", async (req, res) => {
   try {
-    res.status(201).json({ message: "is logout" });
+    var dateNow = new Date();
+    const userId = getUserId(req);
+    const user = await User.findOne({ _id: userId }); // Get user by userId from database
+    user.last_activity_at = `${dateNow}`;
+    await user.save();
+    console.log(chalk.greenBright("**** User is logout: ", user.email, "\n", dateNow));
+    return res.status(201).json({ message: "is logout" });
   } catch (e) {
-    res.status(500).json({ message: "Something wrong, try again" });
+    return res.status(500).json({ message: "Something wrong, try again" });
   }
 });
 

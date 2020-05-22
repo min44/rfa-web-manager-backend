@@ -5,6 +5,12 @@ const schema = new Schema({
     password: { type: String, required: true },
     full_name: { type: String, required: false },
     display_name: { type: String, required: false },
+    created_at: { type: String, required: false },
+    deleted_at: { type: String, required: false },
+    last_activity_at: { type: String, required: false },
+    email: { type: String, required: false },
+    language: { type: String, required: false },
+
 })
 
 module.exports = model('User', schema)

@@ -91,7 +91,6 @@ router.post("/dm/deleteobject", (req, res) => {
   if (!bucketKey) {
     bucketKey = getUserId(req);
   }
-
   forgeDataManagementApiClient.deleteObject(bucketKey, objectKey).then(
     (response) => res.status(response.statusCode).json(response),
     (reject) => res.status(reject.statusCode).json(reject)

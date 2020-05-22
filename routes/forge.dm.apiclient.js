@@ -115,12 +115,15 @@ function getExtractedParametersFiles(bucketKey) {
           objectData.objectKey.includes("extractedParameters.json")
         );
         if (filteredObjects.length > 0) {
-          console.log("filteredObjects not null", filteredObjects)
           filteredObjects.forEach((item) => {
             getObject(bucketKey, item.objectKey).then(
               (res) => {
                 itemsProcessed = itemsProcessed + 1;
-                extractedParametersFiles.push(JSON.parse(res.body.toString("utf8").slice(1)));
+                const parsedJsonData = JSON.parse(res.body.toString("utf8").slice(1));
+                const parameterSet = {};
+                parameterSet.objectKey = item.objectKey;
+                parameterSet.parameters = parsedJsonData;
+                extractedParametersFiles.push(parameterSet);
                 if (itemsProcessed === filteredObjects.length) {
                   const response = {};
                   response.extractedParametersFiles = extractedParametersFiles;
@@ -134,9 +137,7 @@ function getExtractedParametersFiles(bucketKey) {
               }
             );
           });
-
         } else {
-          console.log("filteredObjects else", filteredObjects)
           const response = {};
           response.extractedParametersFiles = extractedParametersFiles;
           response.statusCode = 200;
@@ -217,7 +218,7 @@ function uploadFile(bucketKey, files) {
                       var queryLoop = setInterval(() => {
                         forgeDesignAutomationApiClient.getWorkitemStatus(res.id).then(
                           (res) => {
-                            if (res.status != "inprogress") {
+                            if (res.status != "inprogress" && res.status != "pending") {
                               signedResourcesData.push(signedResourcesFile);
                               itemsProcessed = itemsProcessed + 1;
                               if (itemsProcessed === files.length) {
