@@ -3,6 +3,7 @@ const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 const chalk = require("chalk");
+const { verifyAdmin, verifyRoot, verifyToken } = require("./middlewares");
 
 const router = Router();
 
@@ -13,7 +14,7 @@ function getUserId(req) {
 }
 
 // /api/users/profile
-router.get("/profile", async (req, res) => {
+router.get("/profile", verifyToken, async (req, res) => {
   try {
     var dateNow = new Date();
     const userId = getUserId(req);
@@ -28,7 +29,7 @@ router.get("/profile", async (req, res) => {
 });
 
 // /api/users/users
-router.get("/users", async (req, res) => {
+router.get("/users", verifyAdmin, async (req, res) => {
   try {
     const users = await User.find({}); // Getting all user from database
     return res.status(200).json({ users }); // Send the user to the client
@@ -37,8 +38,23 @@ router.get("/users", async (req, res) => {
   }
 });
 
+// /api/users/role
+router.post("/role", verifyRoot, async (req, res) => {
+  try {
+    console.log(req.body);
+    const userId = req.body.userId;
+    const role = req.body.role;
+    const user = await User.findOne({ _id: userId });
+    user.role = role;
+    await user.save();
+    return res.status(200).json({ message: `User ${userId} role has been changed on ${role}` });
+  } catch (e) {
+    res.status(500).json({ message: "Something wrong, try again" });
+  }
+});
+
 // /api/users/delete
-router.post("/delete", async (req, res) => {
+router.post("/delete", verifyAdmin, async (req, res) => {
   try {
     const userId = req.body.userId;
     const response = await User.findByIdAndDelete({ _id: userId });

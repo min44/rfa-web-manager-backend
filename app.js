@@ -16,7 +16,7 @@ app.use("/api/forge", require("./routes/forge.da.routes"));
 app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/users", require("./routes/users.routes"));
 app.get("/", (req, res) => {
-  res.send("BIMgen Server is running. Let's hack.");
+  res.send("BIMgen server is running. Let's hack.");
 });
 
 const PORT = config.get("port") || 5000;
@@ -41,7 +41,7 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-console.log(process.env.NODE_ENV)
+console.log("process.env.NODE_ENV: ", process.env.NODE_ENV)
 
 async function start() {
   try {

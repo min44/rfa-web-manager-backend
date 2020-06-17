@@ -4,11 +4,12 @@ const axios = require("axios");
 const fs = require("fs");
 const FormData = require("form-data");
 const path = require("path");
+const { verifyAdmin } = require("./middlewares");
 
 const router = Router();
 
 // /api/forge/da/createnickname
-router.post("/da/createnickname", (req, res) => {
+router.post("/da/createnickname", verifyAdmin, (req, res) => {
   console.log("__from createNickname");
   const { newname } = req.body;
   let nicknameRecord = { nickname: newname };
@@ -25,7 +26,7 @@ router.post("/da/createnickname", (req, res) => {
 });
 
 // /api/forge/da/getappbundles
-router.get("/da/getappbundles", (req, res) => {
+router.get("/da/getappbundles", verifyAdmin, (req, res) => {
   console.log("__from getAppBundles");
   forgeDesignAutomationApiClient.getAppBundles().then(
     (response) => {
@@ -39,7 +40,7 @@ router.get("/da/getappbundles", (req, res) => {
 });
 
 // /api/forge/da/createappbundle
-router.post("/da/createappbundle", (req, res) => {
+router.post("/da/createappbundle", verifyAdmin, (req, res) => {
   console.log("__from createAppBundle");
   const { id } = req.body;
   const appBundle = {
@@ -54,7 +55,7 @@ router.post("/da/createappbundle", (req, res) => {
       Object.keys(response.uploadParameters.formData).forEach((key) => {
         formData.append(key, response.uploadParameters.formData[key]);
       });
-      const filePath = path.join(__dirname , "forge.appbundles", "ExtractRvtParam.zip");
+      const filePath = path.join(__dirname, "forge.appbundles", "ExtractRvtParam.zip");
       formData.append("file", fs.createReadStream(filePath), { knownLength: fs.statSync(filePath).size });
       const headers = {
         ...formData.getHeaders(),
@@ -92,7 +93,7 @@ router.post("/da/createappbundle", (req, res) => {
 });
 
 // /api/forge/da/deleteappbundle
-router.post("/da/deleteAppBundle", (req, res) => {
+router.post("/da/deleteAppBundle", verifyAdmin, (req, res) => {
   console.log("__from deleteAppBundle");
   const { id } = req.body;
   forgeDesignAutomationApiClient.deleteAppBundle(id).then(
@@ -102,7 +103,7 @@ router.post("/da/deleteAppBundle", (req, res) => {
 });
 
 // /api/forge/da/createactivity
-router.post("/da/createactivity", (req, res) => {
+router.post("/da/createactivity", verifyAdmin, (req, res) => {
   console.log("__from createActivity");
   const { id } = req.body;
 
@@ -161,7 +162,7 @@ router.post("/da/createactivity", (req, res) => {
 });
 
 // /api/forge/da/getactivities
-router.get("/da/getactivities", (req, res) => {
+router.get("/da/getactivities", verifyAdmin, (req, res) => {
   console.log("__from getActivities");
   forgeDesignAutomationApiClient.getActivities().then(
     (response) => {
@@ -175,7 +176,7 @@ router.get("/da/getactivities", (req, res) => {
 });
 
 // /api/forge/da/deleteactivity
-router.post("/da/deleteactivity", (req, res) => {
+router.post("/da/deleteactivity", verifyAdmin, (req, res) => {
   console.log("__from deleteActivity");
   const { id } = req.body;
   forgeDesignAutomationApiClient.deleteActivity(id).then(
@@ -185,7 +186,7 @@ router.post("/da/deleteactivity", (req, res) => {
 });
 
 // /api/forge/da/createworkitem
-router.post("/da/createworkitem", (req, res) => {
+router.post("/da/createworkitem", verifyAdmin, (req, res) => {
   console.log("__from createWorkItem");
   const { id } = req.body;
 
