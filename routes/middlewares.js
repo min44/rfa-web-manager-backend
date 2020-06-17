@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const config = require("config");
 
-const admins = ["5ee9865259c4b46d987a63d7", "5ee9846714c65b884069496a"];
+const admins = ["5ee9865259c4b46d987a63d7", "5ee9badfd8e0498bd47ce1b5"];
 const roots = ["5ee9865259c4b46d987a63d7"];
 
 function getUserId(req) {
