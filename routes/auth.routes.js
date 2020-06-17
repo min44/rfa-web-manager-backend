@@ -6,14 +6,9 @@ const config = require("config");
 const { check, validationResult } = require("express-validator");
 const forgeDataManagementApiClient = require("./forge.dm.apiclient");
 const chalk = require("chalk");
+const { getUserId } = require("./middlewares");
 
 const router = Router();
-
-function getUserId(req) {
-  const [bearer, token] = req.headers.authorization.split(" "); // Getting client jwt token
-  const { userId, iat, exp } = jwt.verify(token, config.get("jwtSecret")); // Verify teken. userId extraction
-  return userId;
-}
 
 // /api/auth/register
 router.post(
@@ -52,6 +47,7 @@ router.post(
         created_at: `${dateNow}`,
         last_activity_at: `${dateNow}`,
         language: "ENU",
+        role: "user",
       });
       await user.save();
       const token = jwt.sign({ userId: user.id }, config.get("jwtSecret"), {
