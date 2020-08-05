@@ -10,7 +10,7 @@
     "cors": "^2.8.5",
     "cross-env": "7.0.2",
     "express": "^4.17.1",
-    "express-fileupload": "^1.1.6",
+    "express-fileupload": "^1.1.9",
     "express-validator": "^6.4.0",
     "forge-apis": "^0.7.3",
     "https": "1.0.0",
