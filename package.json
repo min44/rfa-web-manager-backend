@@ -14,7 +14,7 @@
     "express-validator": "^6.4.0",
     "forge-apis": "^0.7.3",
     "https": "1.0.0",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "mongoose": "^5.9.1"
   },
   "scripts": {
